@@ -10,7 +10,7 @@ app.use(cors());
 
 mongoose
   .connect(
-    "mongodb+srv://Judes:julien@cluster0.xwkmtjb.mongodb.net/?retryWrites=true&w=majority",
+    "mongodb+srv://Judes:XXX@cluster0.xwkmtjb.mongodb.net/?retryWrites=true&w=majority",
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log("Champion, connexion à MongoDB réussie !"))
