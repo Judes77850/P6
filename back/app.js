@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const sauceRoutes = require("./routes/sauce");
+const sauceRoutes = require("./routes/sauces");
 const userRoutes = require("./routes/user");
 const path = require("path");
 const cors = require("cors");
@@ -8,9 +8,10 @@ const app = express();
 
 app.use(cors());
 
+
 mongoose
   .connect(
-    "mongodb+srv://Judes:XXX@cluster0.xwkmtjb.mongodb.net/?retryWrites=true&w=majority",
+    "mongodb+srv://Judes:julien@cluster0.xwkmtjb.mongodb.net/?retryWrites=true&w=majority",
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log("Champion, connexion à MongoDB réussie !"))
