@@ -29,6 +29,10 @@ exports.modifySauce = (req, res, next) => {
   if (req.file) {
     Sauce.findOne({ _id: req.params.id })
       .then((sauce) => {
+        if (req.auth.userId != sauce.userId) {
+          res.status(403).json({ error: "Vous n'êtes pas autorisé" });
+          return;
+        }
         const filename = sauce.imageUrl.split("/images/")[1];
         fs.unlink(`images/${filename}`, () => {
           const sauceObject = {
@@ -61,17 +65,17 @@ exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       if (sauce.userId != req.auth.userId) {
-        res.status(401).json({ message: "non autorisé" });
-      } else {
-        const filename = sauce.imageUrl.split("/images/")[1];
-        fs.unlink(`images/${filename}`, () => {
-          Sauce.deleteOne({ _id: req.params.id })
-            .then(() => {
-              res.status(200).json({ message: "Objet supprimé" });
-            })
-            .catch((error) => res.status(401).json({ error }));
-        });
+        res.status(403).json({ message: "non autorisé" });
+        return;
       }
+      const filename = sauce.imageUrl.split("/images/")[1];
+      fs.unlink(`images/${filename}`, () => {
+        Sauce.deleteOne({ _id: req.params.id })
+          .then(() => {
+            res.status(200).json({ message: "Objet supprimé" });
+          })
+          .catch((error) => res.status(401).json({ error }));
+      });
     })
     .catch((error) => {
       res.status(500).json({ error });
@@ -100,4 +104,58 @@ exports.findAllSauces = (req, res, next) => {
     .catch((error) => {
       res.status(400).json({ error: error });
     });
+};
+
+exports.likeSauce = (req, res, next) => {
+  const like = req.body.like;
+  const idSauce = req.params.id;
+
+  Sauce.findOne({ _id: idSauce }).then((sauce) => {
+    const idIncluded =
+      !sauce.usersLiked.includes(req.body.userId) &&
+      !sauce.usersDisliked.includes(req.body.userId);
+    if (like === 1 && idIncluded) {
+      Sauce.updateOne(
+        { _id: idSauce },
+        {
+          $push: { usersLiked: req.body.userId },
+          $inc: { likes: +1 },
+        }
+      )
+        .then(() => res.status(200).json({ message: "ajout like" }))
+        .catch((error) => res.status(400).json({ error }));
+    } else if (like === -1 && idIncluded) {
+      Sauce.updateOne(
+        { _id: idSauce },
+        {
+          $push: { usersDisliked: req.body.userId },
+          $inc: { dislikes: +1 },
+        }
+      )
+        .then(() => res.status(200).json({ message: "ajout dislike !" }))
+        .catch((error) => res.status(400).json({ error }));
+    } else {
+      if (sauce.usersLiked.includes(req.body.userId)) {
+        Sauce.updateOne(
+          { _id: idSauce },
+          {
+            $pull: { usersLiked: req.body.userId },
+            $inc: { likes: -1 },
+          }
+        )
+          .then(() => res.status(200).json({ message: "retrait like" }))
+          .catch((error) => res.status(400).json({ error }));
+      } else if (sauce.usersDisliked.includes(req.body.userId)) {
+        Sauce.updateOne(
+          { _id: idSauce },
+          {
+            $pull: { usersDisliked: req.body.userId },
+            $inc: { dislikes: -1 },
+          }
+        )
+          .then(() => res.status(200).json({ message: "retrait dislike" }))
+          .catch((error) => res.status(400).json({ error }));
+      }
+    }
+  });
 };

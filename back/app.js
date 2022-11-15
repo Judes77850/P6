@@ -8,7 +8,6 @@ const app = express();
 
 app.use(cors());
 
-
 mongoose
   .connect(
     "mongodb+srv://Judes:julien@cluster0.xwkmtjb.mongodb.net/p6?retryWrites=true&w=majority",
